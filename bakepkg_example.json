@@ -1,0 +1,14 @@
+{
+  "id": "com.example.mytool",
+  "name": "MyToolApp",
+  "version": "1.2.3",
+  "output": "MyTool-1.2.3.pkg",
+  "symlink_binaries": true,
+  "files": {
+    "bin": ["bin/mytool"]
+  },
+  "signing": {
+    "identity": "Developer ID Installer: Your Name (ABC123XYZ)",
+    "notarize": false
+  }
+}

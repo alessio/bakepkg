@@ -1,0 +1,19 @@
+{
+  "id": "com.example.dist",
+  "name": "DistExample",
+  "version": "1.0.0",
+  "output": "DistExample.pkg",
+  "files": {
+    "share": ["data"]
+  },
+  "distribution": {
+    "readme": "resources/README.md",
+    "license": "resources/LICENSE.txt",
+    "welcome": "resources/WELCOME.txt",
+    "background": "assets/background.png"
+  },
+  "signing": {
+    "identity": "Developer ID Installer: Your Name (ABC123XYZ)",
+    "notarize": false
+  }
+}

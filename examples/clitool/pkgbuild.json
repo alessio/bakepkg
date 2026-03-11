@@ -1,0 +1,14 @@
+{
+  "id": "com.example.tool",
+  "name": "ToolApp",
+  "version": "1.0.0",
+  "output": "ToolInstaller.pkg",
+  "symlink_binaries": true,
+  "files": {
+    "bin": ["mytool"]
+  },
+  "signing": {
+    "identity": "Developer ID Installer: Your Name (ABC123XYZ)",
+    "notarize": false
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "dev.essio.al.bakepkg",
+  "name": "bakepkg",
+  "version": "0.1.0",
+  "output": "bakepkg-0.1.0.pkg",
+  "symlink_binaries": true,
+  "files": {
+    "bin": ["bakepkg"],
+    "share": ["README.md", "LICENSE", "examples"]
+  }
+}
