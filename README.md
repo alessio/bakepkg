@@ -81,7 +81,7 @@ bakepkg -verbose
 
 | Flag | Description | Default |
 | :--- | :--- | :--- |
-| `-config` | Path to JSON configuration file | `pkgbuild.json` |
+| `-config` | Path to JSON configuration file | `bakepkg.json` |
 | `-verbose` | Enable verbose output | `false` |
 | `-debug` | Enable debug output | `false` |
 | `-version`, `-V` | Print version information and exit | |
@@ -89,9 +89,9 @@ bakepkg -verbose
 
 ## 📄 JSON Configuration
 
-All build settings are defined in `pkgbuild.json`.
+All build settings are defined in `bakepkg.json`.
 
-### Example `pkgbuild.json`
+### Example `bakepkg.json`
 
 ```json
 {

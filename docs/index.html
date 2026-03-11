@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bakepkg — The Modern macOS Package Builder</title>
+  <meta name="description" content="A robust CLI tool and Go library for building signed, notarized macOS installer packages (.pkg) with auto-generated install scripts.">
+  <style>
+    :root {
+      --bg: #fafafa;
+      --card: #ffffff;
+      --text: #1a1a2e;
+      --muted: #64648c;
+      --accent: #0071e3;
+      --accent-light: #47a9ff;
+      --border: #e8e8f0;
+      --code-bg: #f0f4f8;
+      --tag-bg: #e8f0fe;
+      --tag-text: #1a56c4;
+      --gradient-start: #0071e3;
+      --gradient-end: #47a9ff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d0f14;
+        --card: #161b27;
+        --text: #e8eaf0;
+        --muted: #8892a4;
+        --accent: #47a9ff;
+        --accent-light: #0071e3;
+        --border: #232b3a;
+        --code-bg: #1a2030;
+        --tag-bg: #1a2a44;
+        --tag-text: #7ab8ff;
+        --gradient-start: #47a9ff;
+        --gradient-end: #0071e3;
+      }
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 80px 0 60px;
+    }
+
+    .hero-icon {
+      font-size: 72px;
+      margin-bottom: 16px;
+      display: block;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+
+    .hero h1 {
+      font-size: 52px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero .tagline {
+      font-size: 20px;
+      color: var(--muted);
+      margin-top: 8px;
+      font-weight: 400;
+    }
+
+    .hero .description {
+      font-size: 16px;
+      color: var(--muted);
+      margin-top: 16px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Buttons */
+    .buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 113, 227, 0.25);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    /* Install box */
+    .install-box {
+      margin-top: 32px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .install-cmd {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+      font-size: 14px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s ease;
+      position: relative;
+    }
+
+    .install-cmd:hover { border-color: var(--accent); }
+
+    .install-cmd::before {
+      content: "$";
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 4px;
+      border-radius: 4px;
+      transition: color 0.15s ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .copy-btn:hover { color: var(--accent); }
+    .copy-btn svg { width: 16px; height: 16px; }
+
+    .copy-tooltip {
+      position: absolute;
+      top: -32px;
+      right: 8px;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 12px;
+      font-family: -apple-system, sans-serif;
+      padding: 4px 10px;
+      border-radius: 6px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .copy-tooltip.show { opacity: 1; }
+
+    /* Features */
+    .features {
+      padding: 40px 0 60px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    /* Sections */
+    .section-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    /* Code blocks */
+    .usage, .config-section, .library-section {
+      padding: 20px 0 60px;
+    }
+
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+      font-size: 13.5px;
+      line-height: 1.7;
+      overflow-x: auto;
+      color: var(--text);
+    }
+
+    .code-block .comment { color: var(--muted); font-style: italic; }
+    .code-block .flag    { color: var(--accent); }
+    .code-block .string  { color: #c0392b; }
+    .code-block .key     { color: var(--accent); }
+    .code-block .val     { color: #27ae60; }
+
+    @media (prefers-color-scheme: dark) {
+      .code-block .string { color: #ff7675; }
+      .code-block .val    { color: #55efc4; }
+    }
+
+    /* Options table */
+    .options { padding: 0 0 60px; }
+
+    .options-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .options-table th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .options-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .options-table tr:last-child td { border-bottom: none; }
+
+    .options-table code {
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 13px;
+      font-family: "SF Mono", "Fira Code", monospace;
+    }
+
+    .options-table .desc { color: var(--muted); }
+
+    /* Config fields */
+    .config-section { padding: 0 0 60px; }
+
+    .config-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .config-table th {
+      text-align: left;
+      padding: 11px 14px;
+      font-weight: 700;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .config-table td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .config-table tr:last-child td { border-bottom: none; }
+
+    .config-table code {
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 12.5px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      white-space: nowrap;
+    }
+
+    .config-table .desc { color: var(--muted); }
+    .config-table .req  { color: #e17055; font-size: 12px; font-weight: 600; }
+
+    /* Pipeline */
+    .pipeline { padding: 0 0 60px; }
+
+    .pipeline-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+    }
+
+    .pipeline-steps::before {
+      content: "";
+      position: absolute;
+      left: 19px;
+      top: 24px;
+      bottom: 24px;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .pipeline-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 14px 0;
+      position: relative;
+    }
+
+    .step-num {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-body h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .step-body p {
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      .hero { padding: 60px 0 40px; }
+      .hero h1 { font-size: 38px; }
+      .hero .tagline { font-size: 17px; }
+      .install-cmd { font-size: 12px; padding: 12px 14px; }
+      .options-table, .config-table { font-size: 13px; }
+      .options-table th, .options-table td,
+      .config-table th, .config-table td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <span class="hero-icon" aria-hidden="true">&#x1F4E6;</span>
+      <h1>bakepkg</h1>
+      <p class="tagline">The Modern macOS Package Builder</p>
+      <p class="description">
+        A robust CLI tool and Go library for building signed, notarized macOS
+        installer packages (<code>.pkg</code>) with auto-generated install scripts
+        — no manual scripting required.
+      </p>
+      <div class="buttons">
+        <a href="https://github.com/alessio/bakepkg/releases" class="btn btn-primary">
+          <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+          Download
+        </a>
+        <a href="https://github.com/alessio/bakepkg" class="btn btn-secondary">
+          <svg viewBox="0 0 16 16"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+          GitHub
+        </a>
+        <a href="https://pkg.go.dev/al.essio.dev/cmd/bakepkg/pkg/pkginstaller" class="btn btn-secondary">
+          <svg viewBox="0 0 16 16"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h8.25a.75.75 0 0 1 0 1.5H2.5a.25.25 0 0 0 0 .5h8.25a.75.75 0 0 1 0 1.5H2.5a.25.25 0 0 0 0 .5h8.25a.75.75 0 0 1 0 1.5H2.5a.25.25 0 0 0-.25.25v7.75c0 .414.336.75.75.75H13.5v-5.5a.75.75 0 0 1 1.5 0V14a.75.75 0 0 1-.75.75H3A2.25 2.25 0 0 1 .75 12.5V2.5ZM15.28 3.22a.75.75 0 0 0-1.06 0L12 5.44l-.72-.72a.75.75 0 0 0-1.06 1.06l1.25 1.25a.75.75 0 0 0 1.06 0l2.75-2.75a.75.75 0 0 0 0-1.06Z"/></svg>
+          GoDoc
+        </a>
+      </div>
+      <div class="install-box">
+        <div class="install-cmd" onclick="copyInstall(this)">
+          go install al.essio.dev/cmd/bakepkg@latest
+          <button class="copy-btn" aria-label="Copy to clipboard">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+          </button>
+          <span class="copy-tooltip">Copied!</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <div class="container">
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F680;</span>
+          <h3>Simple</h3>
+          <p>Build a signed, notarized <code>.pkg</code> from a single JSON config file.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x2699;&#xFE0F;</span>
+          <h3>Auto-scripting</h3>
+          <p>Generates <code>postinstall</code>, <code>uninstall.sh</code>, and upgrade scripts automatically.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F6E4;&#xFE0F;</span>
+          <h3>PATH Integration</h3>
+          <p>Writes <code>/etc/paths.d</code> and <code>/etc/manpaths.d</code> entries so binaries are immediately discoverable.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F510;</span>
+          <h3>Integrated Signing</h3>
+          <p>Automatically signs binaries and the final installer with your Developer ID certificate.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F34E;</span>
+          <h3>Modern Notarization</h3>
+          <p>Directly integrates with Apple's Notary API — no more <code>xcrun altool</code>.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F5A5;&#xFE0F;</span>
+          <h3>Distribution UI</h3>
+          <p>First-class support for Welcome screens, READMEs, Licenses, and Dark Mode backgrounds.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F464;</span>
+          <h3>Single-User Mode</h3>
+          <p>Generate distribution packages with per-user installation domain choices.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F9F9;</span>
+          <h3>Quarantine Stripping</h3>
+          <p>Strips <code>com.apple.quarantine</code> attributes to prevent Gatekeeper false positives.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">&#x1F52C;</span>
+          <h3>Simulation Mode</h3>
+          <p>Dry-run mode prints all commands without touching the system — perfect for CI debugging.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start -->
+  <section class="usage">
+    <div class="container">
+      <h2 class="section-title">Quick Start</h2>
+      <div class="code-block">
+        <span class="comment"># Run with default config (bakepkg.json in current directory)</span><br>
+        bakepkg<br>
+        <br>
+        <span class="comment"># Use a specific config file with verbose output</span><br>
+        bakepkg <span class="flag">-config</span> custom.json <span class="flag">-verbose</span><br>
+        <br>
+        <span class="comment"># CI/CD: pass notarization credentials via environment</span><br>
+        export MACOSNOTARYLIB_ISSUER_ID=<span class="string">"..."</span><br>
+        export MACOSNOTARYLIB_KID=<span class="string">"..."</span><br>
+        export MACOSNOTARYLIB_PRIVATE_KEY=<span class="string">"base64_key"</span><br>
+        bakepkg
+      </div>
+    </div>
+  </section>
+
+  <!-- Options -->
+  <section class="options">
+    <div class="container">
+      <h2 class="section-title">Options</h2>
+      <div style="overflow-x: auto; border-radius: 12px;">
+        <table class="options-table">
+          <thead>
+            <tr><th>Flag</th><th>Description</th><th>Default</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>-config</code></td><td class="desc">Path to JSON configuration file</td><td><code>bakepkg.json</code></td></tr>
+            <tr><td><code>-verbose</code></td><td class="desc">Enable verbose output</td><td><code>false</code></td></tr>
+            <tr><td><code>-debug</code></td><td class="desc">Enable debug output</td><td><code>false</code></td></tr>
+            <tr><td><code>-version</code>, <code>-V</code></td><td class="desc">Print version information and exit</td><td></td></tr>
+            <tr><td><code>-help</code>, <code>-h</code></td><td class="desc">Display the help message and exit</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config Reference -->
+  <section class="config-section">
+    <div class="container">
+      <h2 class="section-title">Configuration Reference</h2>
+      <div class="code-block" style="margin-bottom: 24px;">
+<span class="comment">// bakepkg.json</span>
+{
+  <span class="key">"id"</span>:               <span class="string">"com.example.mytool"</span>,
+  <span class="key">"name"</span>:             <span class="string">"MyTool"</span>,
+  <span class="key">"version"</span>:          <span class="string">"1.2.0"</span>,
+  <span class="key">"output"</span>:           <span class="string">"MyTool-1.2.0.pkg"</span>,
+  <span class="key">"symlink_binaries"</span>: <span class="val">true</span>,
+
+  <span class="key">"files"</span>: {
+    <span class="key">"bin"</span>:            [<span class="string">"./build/mytool"</span>],
+    <span class="key">"share/man/man1"</span>: [<span class="string">"./docs/mytool.1"</span>],
+    <span class="key">"etc"</span>:            [<span class="string">"./config/defaults.yaml"</span>]
+  },
+
+  <span class="key">"signing"</span>: {
+    <span class="key">"identity"</span>: <span class="string">"Developer ID Installer: Your Name (XYZ)"</span>,
+    <span class="key">"notarize"</span>: <span class="val">true</span>
+  }
+}</div>
+
+      <div style="overflow-x: auto; border-radius: 12px;">
+        <table class="config-table">
+          <thead>
+            <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>id</code></td><td><code>string</code></td><td><span class="req">required</span></td><td class="desc">Reverse-DNS package identifier, e.g. <code>com.example.tool</code>.</td></tr>
+            <tr><td><code>name</code></td><td><code>string</code></td><td><span class="req">required</span></td><td class="desc">Application name. Used as the install prefix component and in <code>paths.d</code>.</td></tr>
+            <tr><td><code>version</code></td><td><code>string</code></td><td><code>"1.0.0"</code></td><td class="desc">Package version string.</td></tr>
+            <tr><td><code>output</code></td><td><code>string</code></td><td><code>"out.pkg"</code></td><td class="desc">Output <code>.pkg</code> filename.</td></tr>
+            <tr><td><code>single_user</code></td><td><code>boolean</code></td><td><code>false</code></td><td class="desc">Produce a distribution package with per-user installation domain choices.</td></tr>
+            <tr><td><code>symlink_binaries</code></td><td><code>boolean</code></td><td><code>false</code></td><td class="desc">Create symlinks in <code>/usr/local/bin/</code> for each detected binary.</td></tr>
+            <tr><td><code>files</code></td><td><code>object</code></td><td></td><td class="desc">Map of <code>dest_subdir → [source_paths]</code>. Installed under <code>/Library/&lt;Name&gt;/&lt;Version&gt;/</code>.</td></tr>
+            <tr><td><code>distribution.*</code></td><td><code>object</code></td><td></td><td class="desc">UI assets for the installer wizard: <code>readme</code>, <code>license</code>, <code>welcome</code>, <code>background</code>, <code>background_dark</code>.</td></tr>
+            <tr><td><code>signing.identity</code></td><td><code>string</code></td><td></td><td class="desc">Developer ID Installer certificate name or hash.</td></tr>
+            <tr><td><code>signing.notarize</code></td><td><code>boolean</code></td><td><code>false</code></td><td class="desc">Submit the package to Apple's Notary API after signing.</td></tr>
+            <tr><td><code>signing.issuer_id</code></td><td><code>string</code></td><td></td><td class="desc">App Store Connect API issuer ID. Env: <code>MACOSNOTARYLIB_ISSUER_ID</code>.</td></tr>
+            <tr><td><code>signing.key_id</code></td><td><code>string</code></td><td></td><td class="desc">App Store Connect API key ID. Env: <code>MACOSNOTARYLIB_KID</code>.</td></tr>
+            <tr><td><code>signing.private_key_b64</code></td><td><code>string</code></td><td></td><td class="desc">Base64-encoded private key. Env: <code>MACOSNOTARYLIB_PRIVATE_KEY</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Build Pipeline -->
+  <section class="pipeline">
+    <div class="container">
+      <h2 class="section-title">Build Pipeline</h2>
+      <div class="pipeline-steps">
+        <div class="pipeline-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Validate &amp; Stage</h4>
+            <p>Validate config, create a temp staging directory, copy all files into it.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Quarantine Strip</h4>
+            <p>Remove <code>com.apple.quarantine</code> extended attributes from all staged files.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>Generate Scripts</h4>
+            <p>Auto-generate <code>postinstall</code>, <code>preupgrade</code>, <code>postupgrade</code>, and <code>uninstall.sh</code> from the file map.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>Codesign Binaries</h4>
+            <p>Sign all executables in the staging directory with your Developer ID Application certificate.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <h4>pkgbuild</h4>
+            <p>Assemble the staged payload and scripts into a flat <code>.pkg</code> component.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <h4>productbuild</h4>
+            <p>Wrap into a distribution package when UI assets or <code>single_user</code> mode is enabled. Injects <code>&lt;domains&gt;</code> for per-user installs.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">7</div>
+          <div class="step-body">
+            <h4>productsign</h4>
+            <p>Sign the final package with your Developer ID Installer certificate.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">8</div>
+          <div class="step-body">
+            <h4>Notarize &amp; Staple</h4>
+            <p>Submit to Apple's Notary API and staple the resulting ticket to the package.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Library Usage -->
+  <section class="library-section">
+    <div class="container">
+      <h2 class="section-title">Go Library</h2>
+      <div class="code-block">
+import <span class="string">"al.essio.dev/cmd/bakepkg/pkg/pkginstaller"</span>
+
+builder := pkginstaller.New().<br>
+&nbsp;&nbsp;&nbsp;&nbsp;WithIdentifier(<span class="string">"com.example.mytool"</span>).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;WithName(<span class="string">"MyTool"</span>).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;WithVersion(<span class="string">"1.2.0"</span>).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;AddFile(<span class="string">"build/mytool"</span>, <span class="string">"bin/mytool"</span>).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;WithSymlinkBinaries(<span class="val">true</span>).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;WithSigning(pkginstaller.Signing{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Identity: <span class="string">"Developer ID Installer: Example (XYZ)"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Notarize: <span class="val">true</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+<br>
+err := builder.Build(<span class="string">"MyTool-1.2.0.pkg"</span>)
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      Made with &#x2764;&#xFE0F; by <a href="https://github.com/alessio">Alessio Treglia</a><br>
+      <a href="https://pkg.go.dev/al.essio.dev/cmd/bakepkg/pkg/pkginstaller">GoDoc</a> &middot;
+      <a href="https://github.com/alessio/bakepkg/releases">Releases</a> &middot;
+      <a href="https://github.com/alessio/bakepkg/blob/main/LICENSE">License</a>
+    </div>
+  </footer>
+
+  <script>
+    function copyInstall(el) {
+      const text = 'go install al.essio.dev/cmd/bakepkg@latest';
+      navigator.clipboard.writeText(text).then(() => {
+        const tooltip = el.querySelector('.copy-tooltip');
+        tooltip.classList.add('show');
+        setTimeout(() => tooltip.classList.remove('show'), 1500);
+      });
+    }
+  </script>
+</body>
+</html>
