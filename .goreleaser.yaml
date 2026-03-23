@@ -22,6 +22,7 @@ builds:
     mod_timestamp: '{{ .CommitTimestamp }}'
     hooks:
       pre: go generate ./internal/...
+      post: ls -lh
 
 archives:
   - format: tar.gz
