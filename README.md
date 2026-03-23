@@ -4,7 +4,7 @@
 
 **The Modern macOS Package Builder**
 
-[![Go](https://github.com/alessio/bakepkg/actions/workflows/go.yml/badge.svg)](https://github.com/alessio/bakepkg/actions/workflows/go.yml)
+[![Go](https://github.com/alessio/bakepkg/actions/workflows/build.yml/badge.svg)](https://github.com/alessio/bakepkg/actions/workflows/build.yml)
 [![GoDoc](https://godoc.org/al.essio.dev/cmd/bakepkg?status.svg)](https://pkg.go.dev/al.essio.dev/cmd/bakepkg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/alessio/bakepkg)](https://goreportcard.com/report/github.com/alessio/bakepkg)
 [![License](https://img.shields.io/github/license/alessio/bakepkg.svg)](https://github.com/alessio/bakepkg/blob/main/LICENSE)
