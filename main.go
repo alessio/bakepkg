@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+
 	"al.essio.dev/cmd/bakepkg/internal/version"
 	"al.essio.dev/cmd/bakepkg/pkg/pkginstaller"
 )
