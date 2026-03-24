@@ -38,6 +38,9 @@ archives:
 
 checksum:
   name_template: 'checksums.txt'
+  extra_files:
+    - glob: ./dist/**/*.pkg
+
 changelog:
   sort: asc
   filters:
