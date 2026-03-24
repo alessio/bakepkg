@@ -222,7 +222,7 @@ func main() {
 	}
 
 	if *verbose || *debug {
-		log.Fatal("package built successfully!")
+		log.Printf("package built successfully")
 	}
 }
 
