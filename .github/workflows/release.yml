@@ -32,3 +32,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Your GoReleaser Pro key, if you have one.
           # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bakepkg-installer-arm64
+          compression-level: 0
+          path: ./dist/bakepkg_darwin_arm64*/bakepkg-*-arm64.pkg
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bakepkg-installer-amd64
+          compression-level: 0
+          path: ./dist/bakepkg_darwin_amd64*/bakepkg-*-amd64.pkg
