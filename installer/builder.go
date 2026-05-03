@@ -1,7 +1,7 @@
 // Package bakepkg provides a fluent API for building macOS installer packages (.pkg).
 // It wraps native macOS tooling like pkgbuild, productbuild, and productsign, while
 // adding advanced features like Gatekeeper quarantine stripping and Apple Notary API integration.
-package pkginstaller
+package installer
 
 import (
 	"fmt"

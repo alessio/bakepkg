@@ -23,7 +23,8 @@ func TestBuildSelf(t *testing.T) {
 	}
 
 	tmpDir := t.TempDir()
-	binary := filepath.Join(tmpDir, "bakepkg")
+	binary := filepath.Join(root, "bakepkg")
+	defer os.Remove(binary)
 	outputPkg := filepath.Join(tmpDir, "bakepkg-0.1.0.pkg")
 
 	// 1. Build the binary into a temp dir

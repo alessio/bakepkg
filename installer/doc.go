@@ -1,4 +1,4 @@
-// Package bakepkg provides a fluent API for building macOS installer packages (.pkg).
+// Package installer provides a fluent API for building macOS installer packages (.pkg).
 // It wraps native macOS tooling like pkgbuild, productbuild, and productsign, while
 // adding advanced features like Gatekeeper quarantine stripping and Apple Notary API integration.
 //
@@ -20,7 +20,7 @@
 //
 // Basic Usage (Flat Package):
 //
-//	builder := pkginstaller.New().
+//	builder := installer.New().
 //	    WithIdentifier("com.example.tool").
 //	    WithName("MyTool").
 //	    WithVersion("1.0.0").
@@ -30,18 +30,18 @@
 //
 // Advanced Usage (Distribution Package with UI and Signing):
 //
-//	builder := pkginstaller.New().
+//	builder := installer.New().
 //	    WithIdentifier("com.example.tool").
 //	    WithName("MyTool").
 //	    WithVersion("1.0.0").
 //	    AddFile("build/mytool", "bin/mytool").
 //	    WithSingleUser(true).
 //	    WithSymlinkBinaries(true).
-//	    WithDistributionUI(pkginstaller.Distribution{
+//	    WithDistributionUI(installer.Distribution{
 //	        Readme: "docs/README.md",
 //	        License: "docs/LICENSE.txt",
 //	    }).
-//	    WithSigning(pkginstaller.Signing{
+//	    WithSigning(installer.Signing{
 //	        Identity: "Developer ID Installer: Example (XYZ)",
 //	        Notarize: true,
 //	    })
@@ -55,4 +55,4 @@
 // this attribute, the installed application may trigger "App is damaged" errors.
 // This builder automatically runs 'xattr -d com.apple.quarantine' on all staged
 // files to prevent this issue.
-package pkginstaller
+package installer

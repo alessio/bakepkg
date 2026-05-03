@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"al.essio.dev/cmd/bakepkg/internal/version"
-	"al.essio.dev/cmd/bakepkg/pkg/pkginstaller"
+	"al.essio.dev/cmd/bakepkg/installer"
 )
 
 // Config represents the schema for the macOS package configuration file.
@@ -197,7 +197,7 @@ func main() {
 		log.Fatal("package 'name' is required in the config file")
 	}
 
-	builder := pkginstaller.New().
+	builder := installer.New().
 		WithIdentifier(cfg.ID).
 		WithName(cfg.Name).
 		WithVersion(cfg.Version).
@@ -222,7 +222,7 @@ func main() {
 		}
 	}
 
-	builder.WithDistributionUI(pkginstaller.Distribution{
+	builder.WithDistributionUI(installer.Distribution{
 		Readme:         cfg.Distribution.Readme,
 		License:        cfg.Distribution.License,
 		Welcome:        cfg.Distribution.Welcome,
@@ -230,7 +230,7 @@ func main() {
 		BackgroundDark: cfg.Distribution.BackgroundDark,
 	})
 
-	builder.WithSigning(pkginstaller.Signing{
+	builder.WithSigning(installer.Signing{
 		Identity:      cfg.Signing.Identity,
 		Entitlements:  cfg.Signing.Entitlements,
 		Notarize:      cfg.Signing.Notarize,

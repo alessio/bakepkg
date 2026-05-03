@@ -1,4 +1,4 @@
-package pkginstaller
+package installer
 
 import (
 	"os"

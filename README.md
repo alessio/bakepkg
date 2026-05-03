@@ -150,19 +150,19 @@ Notarization credentials can also be supplied via environment variables — the 
 ## 📚 Library Usage
 
 ```go
-import "al.essio.dev/cmd/bakepkg/pkg/pkginstaller"
+import "al.essio.dev/cmd/bakepkg/installer"
 
-builder := pkginstaller.New().
+builder := installer.New().
     WithIdentifier("com.example.mytool").
     WithName("MyTool").
     WithVersion("1.2.0").
     AddFile("build/mytool", "bin/mytool").
     WithSymlinkBinaries(true).
-    WithDistributionUI(pkginstaller.Distribution{
+    WithDistributionUI(installer.Distribution{
         Readme:  "docs/README.md",
         License: "docs/LICENSE.txt",
     }).
-    WithSigning(pkginstaller.Signing{
+    WithSigning(installer.Signing{
         Identity:      "Developer ID Installer: Example (XYZ)",
         Notarize:      true,
         IssuerID:      os.Getenv("MACOSNOTARYLIB_ISSUER_ID"),
@@ -173,7 +173,7 @@ builder := pkginstaller.New().
 err := builder.Build("MyTool-1.2.0.pkg")
 ```
 
-See the [pkg/pkginstaller](./pkg/pkginstaller/) package documentation and the [examples/](./examples) directory for more.
+See the [installer](./installer/) package documentation and the [examples/](./examples) directory for more.
 
 ## 🔧 Requirements
 

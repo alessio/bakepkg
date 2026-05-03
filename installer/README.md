@@ -1,6 +1,6 @@
-# pkginstaller
+# installer
 
-`pkginstaller` is the core library behind `macpkg`. It provides a fluent Go API for programmatically building, signing, and notarizing macOS installer packages (`.pkg`).
+`installer` is the core library behind `bakepkg`. It provides a fluent Go API for programmatically building, signing, and notarizing macOS installer packages (`.pkg`).
 
 ## Features
 
@@ -15,12 +15,12 @@
 ## Usage
 
 ```go
-import "al.essio.dev/pkg/pkginstaller"
+import "al.essio.dev/installer"
 
-builder := pkginstaller.New().
+builder := installer.New().
     WithIdentifier("com.example.app").
     WithVersion("1.0.0").
-    WithInstallLocation(pkginstaller.InstallLocationApplications).
+    WithInstallLocation(installer.InstallLocationApplications).
     AddFile("build/MyApp.app", "/Applications/MyApp.app").
     WithSimulate(true) // Enable simulation mode
 

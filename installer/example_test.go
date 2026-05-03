@@ -1,9 +1,9 @@
-package pkginstaller_test
+package installer_test
 
 import (
 	"fmt"
 	"os"
-	"al.essio.dev/cmd/bakepkg/pkg/pkginstaller"
+	"al.essio.dev/cmd/bakepkg/installer"
 )
 
 func ExampleBuilder_Build_flat() {
@@ -13,7 +13,7 @@ func ExampleBuilder_Build_flat() {
 	defer os.RemoveAll("testdata")
 
 	// Configure the builder — no explicit install location or scripts needed
-	builder := pkginstaller.New().
+	builder := installer.New().
 		WithIdentifier("com.example.hello").
 		WithName("Hello").
 		WithVersion("1.0.0").
@@ -37,12 +37,12 @@ func ExampleBuilder_Build_distribution() {
 	defer os.RemoveAll("testdata")
 
 	// Configure the builder
-	builder := pkginstaller.New().
+	builder := installer.New().
 		WithIdentifier("com.example.app").
 		WithName("MyApp").
 		WithVersion("2.5.0").
 		AddFile("testdata/app", "bin/myapp").
-		WithDistributionUI(pkginstaller.Distribution{
+		WithDistributionUI(installer.Distribution{
 			Readme: "testdata/resources/readme.txt",
 		}).
 		WithSimulate(true).
