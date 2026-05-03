@@ -15,7 +15,7 @@
 ## Usage
 
 ```go
-import "al.essio.dev/installer"
+import "al.essio.dev/cmd/bakepkg/installer"
 
 builder := installer.New().
     WithIdentifier("com.example.app").

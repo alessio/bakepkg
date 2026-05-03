@@ -9,18 +9,17 @@ import (
 	"path/filepath"
 	"strings"
 
-	"al.essio.dev/cmd/bakepkg/internal/version"
 	"al.essio.dev/cmd/bakepkg/installer"
 )
 
 // Config represents the schema for the macOS package configuration file.
 type Config struct {
-	ID              string            `json:"id"`
-	Name            string            `json:"name"`
-	Version         string            `json:"version"`
-	SingleUser      bool              `json:"single_user"`
-	SymlinkBinaries bool              `json:"symlink_binaries"`
-	Output          string            `json:"output"`
+	ID              string              `json:"id"`
+	Name            string              `json:"name"`
+	Version         string              `json:"version"`
+	SingleUser      bool                `json:"single_user"`
+	SymlinkBinaries bool                `json:"symlink_binaries"`
+	Output          string              `json:"output"`
 	Files           map[string][]string `json:"files"`
 	Distribution    struct {
 		Readme         string `json:"readme"`
@@ -107,6 +106,8 @@ Examples:
      $ bakepkg
 `)
 }
+
+var version string = "UNRELEASED"
 
 func isSafeRelativeSubpath(p string) bool {
 	if p == "" {
@@ -252,6 +253,6 @@ func main() {
 }
 
 func printVersion() {
-	fmt.Printf("bakepkg %s\n", version.Version())
+	fmt.Printf("bakepkg %s\n", version)
 	fmt.Println("Copyright (C) 2026 Alessio Treglia <alessio@debian.org>")
 }

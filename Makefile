@@ -8,20 +8,16 @@ PKGS := ./...
 all: build check
 
 .PHONY: build
-build: generate
+build:
 	$(GO) build -o $(BIN)
 
 .PHONY: install
-install: generate
+install:
 	$(GO) install
 
 .PHONY: check
-check: generate
+check:
 	$(GO) test -v -race $(PKGS)
-
-.PHONY: generate
-generate:
-	$(GO) generate ./internal/...
 
 .PHONY: lint
 lint:
@@ -39,7 +35,6 @@ mod-tidy:
 clean:
 	rm -f $(BIN)
 	rm -f coverage.out
-	echo "v0.0.0-UNKNOWN" > $(CURDIR)/internal/version/version.txt
 
 .PHONY: distclean
 distclean: clean

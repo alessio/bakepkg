@@ -591,6 +591,7 @@
   <span class="key">"name"</span>:             <span class="string">"MyTool"</span>,
   <span class="key">"version"</span>:          <span class="string">"1.2.0"</span>,
   <span class="key">"output"</span>:           <span class="string">"MyTool-1.2.0.pkg"</span>,
+  <span class="key">"single_user"</span>:      <span class="val">false</span>,
   <span class="key">"symlink_binaries"</span>: <span class="val">true</span>,
 
   <span class="key">"files"</span>: {
@@ -601,6 +602,7 @@
 
   <span class="key">"signing"</span>: {
     <span class="key">"identity"</span>: <span class="string">"Developer ID Installer: Your Name (XYZ)"</span>,
+    <span class="key">"entitlements"</span>: [<span class="string">"com.apple.security.cs.allow-jit"</span>],
     <span class="key">"notarize"</span>: <span class="val">true</span>
   }
 }</div>
@@ -620,6 +622,7 @@
             <tr><td><code>files</code></td><td><code>object</code></td><td></td><td class="desc">Map of <code>dest_subdir → [source_paths]</code>. Installed under <code>/Library/&lt;Name&gt;/&lt;Version&gt;/</code>.</td></tr>
             <tr><td><code>distribution.*</code></td><td><code>object</code></td><td></td><td class="desc">UI assets for the installer wizard: <code>readme</code>, <code>license</code>, <code>welcome</code>, <code>background</code>, <code>background_dark</code>.</td></tr>
             <tr><td><code>signing.identity</code></td><td><code>string</code></td><td></td><td class="desc">Developer ID Installer certificate name or hash.</td></tr>
+            <tr><td><code>signing.entitlements</code></td><td><code>[string]</code></td><td></td><td class="desc">List of entitlements to apply during binary codesigning.</td></tr>
             <tr><td><code>signing.notarize</code></td><td><code>boolean</code></td><td><code>false</code></td><td class="desc">Submit the package to Apple's Notary API after signing.</td></tr>
             <tr><td><code>signing.issuer_id</code></td><td><code>string</code></td><td></td><td class="desc">App Store Connect API issuer ID. Env: <code>MACOSNOTARYLIB_ISSUER_ID</code>.</td></tr>
             <tr><td><code>signing.key_id</code></td><td><code>string</code></td><td></td><td class="desc">App Store Connect API key ID. Env: <code>MACOSNOTARYLIB_KID</code>.</td></tr>

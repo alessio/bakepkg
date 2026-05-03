@@ -19,7 +19,6 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: 'stable'
-      - run: go generate ./...
       - run: go build
       - run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 

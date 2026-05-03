@@ -18,10 +18,9 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - -s -w
+      - -s -w -X main.version={{ .Version }}
     mod_timestamp: '{{ .CommitTimestamp }}'
     hooks:
-      pre: go generate ./internal/...
       post:
         - ./generate_config.sh "{{ .Version }}" "{{ .Arch }}" "{{ .Path }}"
 
