@@ -172,13 +172,32 @@ exit 0
 
 // generateScripts renders script templates and writes them to scriptsDir.
 // It also writes an uninstall.sh into buildDir as part of the payload.
+func validatePathComponent(value, field string) (string, error) {
+	if value == "" || value == "." || value == ".." {
+		return "", fmt.Errorf("invalid %s: must be a non-empty path component", field)
+	}
+	if strings.Contains(value, "/") || strings.Contains(value, "\\") || strings.Contains(value, "..") {
+		return "", fmt.Errorf("invalid %s: path separators and '..' are not allowed", field)
+	}
+	return value, nil
+}
+
 func generateScripts(opts Options, scriptsDir, buildDir string) error {
-	prefix := fmt.Sprintf("%s/%s/%s", InstallLocationLibrary, opts.Name, opts.Version)
+	safeName, err := validatePathComponent(opts.Name, "name")
+	if err != nil {
+		return err
+	}
+	safeVersion, err := validatePathComponent(opts.Version, "version")
+	if err != nil {
+		return err
+	}
+
+	prefix := fmt.Sprintf("%s/%s/%s", InstallLocationLibrary, safeName, safeVersion)
 
 	data := ScriptData{
 		Identifier:      opts.Identifier,
-		Name:            opts.Name,
-		Version:         opts.Version,
+		Name:            safeName,
+		Version:         safeVersion,
 		InstallPrefix:   prefix,
 		Binaries:        detectBinaries(opts.Files),
 		HasManPages:     detectManPages(opts.Files),
@@ -208,7 +227,7 @@ func generateScripts(opts Options, scriptsDir, buildDir string) error {
 	}
 
 	// Generate uninstall.sh in the build payload under bin/
-	uninstallDir := filepath.Join(buildDir, opts.Name, opts.Version, "bin")
+	uninstallDir := filepath.Join(buildDir, safeName, safeVersion, "bin")
 	if err := os.MkdirAll(uninstallDir, 0755); err != nil {
 		return fmt.Errorf("failed to create uninstall dir: %w", err)
 	}
