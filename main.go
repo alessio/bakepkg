@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 
 	"al.essio.dev/cmd/bakepkg/internal/version"
 	"al.essio.dev/cmd/bakepkg/pkg/pkginstaller"
@@ -190,9 +192,13 @@ func main() {
 		})
 
 	for destSubdir, sources := range cfg.Files {
+		safeDestSubdir, err := sanitizeDestinationSubdir(destSubdir)
+		if err != nil {
+			log.Fatalf("invalid files destination %q: %v", destSubdir, err)
+		}
 		for _, src := range sources {
 			// dest is <subdir>/<basename of source>
-			dst := destSubdir + "/" + filepath.Base(src)
+			dst := safeDestSubdir + "/" + filepath.Base(src)
 			builder.AddFile(src, dst)
 		}
 	}
@@ -224,6 +230,30 @@ func main() {
 	if *verbose || *debug {
 		log.Printf("package built successfully")
 	}
+}
+
+func sanitizeDestinationSubdir(destSubdir string) (string, error) {
+	normalized := strings.ReplaceAll(destSubdir, "\\", "/")
+	if normalized == "" {
+		return "", fmt.Errorf("destination subdir cannot be empty")
+	}
+	if strings.HasPrefix(normalized, "/") {
+		return "", fmt.Errorf("absolute destination paths are not allowed")
+	}
+
+	cleaned := path.Clean(normalized)
+	if cleaned == "." || cleaned == ".." || cleaned == "" {
+		return "", fmt.Errorf("destination subdir must be a non-empty relative path")
+	}
+
+	parts := strings.Split(cleaned, "/")
+	for _, p := range parts {
+		if p == ".." || p == "" {
+			return "", fmt.Errorf("destination subdir contains invalid path traversal")
+		}
+	}
+
+	return strings.TrimPrefix(cleaned, "/"), nil
 }
 
 func printVersion() {
