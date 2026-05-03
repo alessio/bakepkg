@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"al.essio.dev/cmd/bakepkg/internal/version"
 	"al.essio.dev/cmd/bakepkg/pkg/pkginstaller"
@@ -107,6 +108,27 @@ Examples:
 `)
 }
 
+func isSafeRelativeSubpath(p string) bool {
+	if p == "" {
+		return false
+	}
+	if filepath.IsAbs(p) {
+		return false
+	}
+
+	clean := filepath.Clean(p)
+	if clean == "." || clean == ".." {
+		return false
+	}
+	if strings.HasPrefix(clean, ".."+string(filepath.Separator)) {
+		return false
+	}
+	if strings.Contains(clean, "/..") || strings.Contains(clean, "\\..") {
+		return false
+	}
+	return true
+}
+
 func main() {
 	log.SetFlags(0)
 	log.SetPrefix("bakepkg: ")
@@ -190,9 +212,12 @@ func main() {
 		})
 
 	for destSubdir, sources := range cfg.Files {
+		if !isSafeRelativeSubpath(destSubdir) {
+			log.Fatalf("invalid files destination subdir %q: must be a safe relative path", destSubdir)
+		}
 		for _, src := range sources {
 			// dest is <subdir>/<basename of source>
-			dst := destSubdir + "/" + filepath.Base(src)
+			dst := filepath.Join(destSubdir, filepath.Base(src))
 			builder.AddFile(src, dst)
 		}
 	}
