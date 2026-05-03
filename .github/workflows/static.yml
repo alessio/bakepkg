@@ -30,7 +30,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    if: contains(github.event.commits[0].modified[*], 'docs/')
     steps:
       - name: Checkout
         uses: actions/checkout@v6
