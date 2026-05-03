@@ -238,6 +238,21 @@ func generateScripts(opts Options, scriptsDir, buildDir string) error {
 	return nil
 }
 
+func validatePathComponent(fieldName, value string) error {
+	if value == "" {
+		return fmt.Errorf("invalid %s: value cannot be empty", fieldName)
+	}
+	if filepath.IsAbs(value) ||
+		strings.Contains(value, "/") ||
+		strings.Contains(value, "\\") ||
+		value == "." ||
+		value == ".." ||
+		strings.Contains(value, "..") {
+		return fmt.Errorf("invalid %s: must be a single safe path component", fieldName)
+	}
+	return nil
+}
+
 func renderScript(tmplStr string, data ScriptData, path string) error {
 	tmpl, err := template.New("script").Parse(tmplStr)
 	if err != nil {
