@@ -5,6 +5,7 @@ package pkginstaller
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 )
 
@@ -95,11 +96,35 @@ func (b *Builder) WithVersion(version string) *Builder {
 	return b
 }
 
+// isSafeDestinationPath validates destination paths accepted by AddFile.
+// It allows absolute or relative destinations, but rejects traversal and
+// paths that normalize to empty/current-directory semantics.
+func isSafeDestinationPath(dst string) bool {
+	if dst == "" {
+		return false
+	}
+
+	clean := filepath.Clean(dst)
+	if clean == "." || clean == "" {
+		return false
+	}
+
+	// Reject any ".." path component after normalization.
+	for _, part := range strings.Split(clean, string(filepath.Separator)) {
+		if part == ".." {
+			return false
+		}
+	}
+	return true
+}
+
 // AddFile adds a file mapping to the package.
 // src is the local file path, and dst is the target path.
 // If dst is relative (doesn't start with /), it is inferred based on Name, Version, and InstallLocation.
 func (b *Builder) AddFile(src, dst string) *Builder {
-	b.opts.Files[src] = dst
+	if isSafeDestinationPath(dst) {
+		b.opts.Files[src] = dst
+	}
 	return b
 }
 
