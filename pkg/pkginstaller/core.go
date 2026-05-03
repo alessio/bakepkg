@@ -35,20 +35,25 @@ func build(opts Options, output string) error {
 	}
 
 	// 2. Copy files and remove quarantine
+	cleanBuildDir := filepath.Clean(buildDir)
 	for src, dst := range opts.Files {
 		relDst := dst
 		if strings.HasPrefix(dst, opts.InstallLocation) {
 			relDst = strings.TrimPrefix(dst, opts.InstallLocation)
 		}
 		internalDst := filepath.Join(buildDir, strings.TrimPrefix(relDst, "/"))
-		if err := os.MkdirAll(filepath.Dir(internalDst), 0755); err != nil {
+		cleanInternalDst := filepath.Clean(internalDst)
+		if cleanInternalDst != cleanBuildDir && !strings.HasPrefix(cleanInternalDst, cleanBuildDir+string(os.PathSeparator)) {
+			return fmt.Errorf("invalid destination path %q: escapes build directory", dst)
+		}
+		if err := os.MkdirAll(filepath.Dir(cleanInternalDst), 0755); err != nil {
 			return err
 		}
-		if err := copyFileOrDir(opts, src, internalDst); err != nil {
+		if err := copyFileOrDir(opts, src, cleanInternalDst); err != nil {
 			return fmt.Errorf("failed to copy %s: %w", src, err)
 		}
-		if err := stripQuarantine(opts, internalDst); err != nil {
-			return fmt.Errorf("failed to strip quarantine from %s: %w", internalDst, err)
+		if err := stripQuarantine(opts, cleanInternalDst); err != nil {
+			return fmt.Errorf("failed to strip quarantine from %s: %w", cleanInternalDst, err)
 		}
 	}
 
