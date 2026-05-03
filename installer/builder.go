@@ -97,10 +97,13 @@ func (b *Builder) WithVersion(version string) *Builder {
 }
 
 // isSafeDestinationPath validates destination paths accepted by AddFile.
-// It allows absolute or relative destinations, but rejects traversal and
-// paths that normalize to empty/current-directory semantics.
+// Destinations must be relative install paths and must not contain traversal
+// or normalize to empty/current-directory semantics.
 func isSafeDestinationPath(dst string) bool {
 	if dst == "" {
+		return false
+	}
+	if filepath.IsAbs(dst) {
 		return false
 	}
 
