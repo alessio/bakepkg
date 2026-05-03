@@ -22,7 +22,8 @@ jobs:
       - run: go generate ./...
       - run: go build
       - run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
-      - uses: codecov/codecov-action@v6
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: alessio/bakepkg
+
+#      - uses: codecov/codecov-action@v6
+#        with:
+#          token: ${{ secrets.CODECOV_TOKEN }}
+#          slug: alessio/bakepkg
