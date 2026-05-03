@@ -46,6 +46,7 @@ func build(opts Options, output string) error {
 		if cleanInternalDst != cleanBuildDir && !strings.HasPrefix(cleanInternalDst, cleanBuildDir+string(os.PathSeparator)) {
 			return fmt.Errorf("invalid destination path %q: escapes build directory", dst)
 		}
+
 		if err := os.MkdirAll(filepath.Dir(cleanInternalDst), 0755); err != nil {
 			return err
 		}
