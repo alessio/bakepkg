@@ -173,6 +173,13 @@ exit 0
 // generateScripts renders script templates and writes them to scriptsDir.
 // It also writes an uninstall.sh into buildDir as part of the payload.
 func generateScripts(opts Options, scriptsDir, buildDir string) error {
+	if err := validatePathComponent("name", opts.Name); err != nil {
+		return err
+	}
+	if err := validatePathComponent("version", opts.Version); err != nil {
+		return err
+	}
+
 	prefix := fmt.Sprintf("%s/%s/%s", InstallLocationLibrary, opts.Name, opts.Version)
 
 	data := ScriptData{
@@ -216,6 +223,21 @@ func generateScripts(opts Options, scriptsDir, buildDir string) error {
 		return fmt.Errorf("failed to generate uninstall.sh: %w", err)
 	}
 
+	return nil
+}
+
+func validatePathComponent(fieldName, value string) error {
+	if value == "" {
+		return fmt.Errorf("invalid %s: value cannot be empty", fieldName)
+	}
+	if filepath.IsAbs(value) ||
+		strings.Contains(value, "/") ||
+		strings.Contains(value, "\\") ||
+		value == "." ||
+		value == ".." ||
+		strings.Contains(value, "..") {
+		return fmt.Errorf("invalid %s: must be a single safe path component", fieldName)
+	}
 	return nil
 }
 
