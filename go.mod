@@ -1,8 +1,8 @@
 module al.essio.dev/cmd/bakepkg
 
-go 1.26
+go 1.27
 
-toolchain go1.26.2
+toolchain go1.27.0
 
 require (
 	github.com/bep/macosnotarylib v0.1.0
